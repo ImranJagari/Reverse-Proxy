@@ -108,6 +108,7 @@ namespace PAO.Server.Base.Network
                 OnConnected();
 
                 m_receiveBuffer = new byte[bufferLength];
+                m_receiveProxyBuffer = new byte[bufferLength];
                 m_socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             }
             catch (System.Exception ex)
@@ -125,7 +126,7 @@ namespace PAO.Server.Base.Network
             Socket client = (Socket)asyncResult.AsyncState;
             client.EndConnect(asyncResult);
 
-            client.BeginReceive(m_receiveProxyBuffer, 0, bufferLength, SocketFlags.None, ProcessReceive, m_socket);
+            client.BeginReceive(m_receiveProxyBuffer, 0, bufferLength, SocketFlags.None, ProcessReceive, client);
         }
 
         private void ProcessDisconnect(IAsyncResult asyncResult)
