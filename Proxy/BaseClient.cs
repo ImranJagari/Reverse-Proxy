@@ -5,7 +5,7 @@ using System.Net.Sockets;
 
 namespace PAO.Server.Base.Network
 {
-    public class BaseClient : IDisposable
+    public class BaseClient
     {
         public static Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -36,10 +36,6 @@ namespace PAO.Server.Base.Network
             Start(socket);
         }
 
-        ~BaseClient()
-        {
-            this.Dispose();
-        }
         #endregion
 
         #region Methods
@@ -75,11 +71,6 @@ namespace PAO.Server.Base.Network
 
         public virtual void Dispose()
         {
-            if (m_socket != null)
-                m_socket.Dispose();
-            if (ProxyClient != null)
-                ProxyClient.Dispose();
-
             m_socket = null;
             ProxyClient = null;
 
@@ -136,6 +127,8 @@ namespace PAO.Server.Base.Network
                 Socket client = (Socket)asyncResult.AsyncState;
                 client.EndDisconnect(asyncResult);
                 OnDisconnected();
+
+                Logger.Info($"{this} disconnected !");
             }
             catch (System.Exception ex)
             {
@@ -202,6 +195,7 @@ namespace PAO.Server.Base.Network
 
         private void OnError(Exception exception)
         {
+            Logger.Error(exception);
             ErrorThrown?.Invoke(this, new ErrorEventArgs(exception));
         }
 
