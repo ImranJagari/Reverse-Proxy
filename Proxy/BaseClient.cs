@@ -62,6 +62,7 @@ namespace PAO.Server.Base.Network
             try
             {
                 m_socket.BeginDisconnect(false, ProcessDisconnect, m_socket);
+                ProxyClient.BeginDisconnect(false, ProcessDisconnect, ProxyClient);
             }
             catch (System.Exception ex)
             {
@@ -71,9 +72,6 @@ namespace PAO.Server.Base.Network
 
         public virtual void Dispose()
         {
-            m_socket = null;
-            ProxyClient = null;
-
             m_receiveBuffer = null;
 
             m_receiveProxyBuffer = null;
@@ -126,7 +124,22 @@ namespace PAO.Server.Base.Network
             {
                 Socket client = (Socket)asyncResult.AsyncState;
                 client.EndDisconnect(asyncResult);
+
+                if (client == m_socket)
+                {
+                    m_socket = null;
+                    if (ProxyClient != null)
+                        ProxyClient.BeginDisconnect(false, ProcessDisconnect, ProxyClient);
+                }
+                else if (client == ProxyClient)
+                {
+                    ProxyClient = null;
+                    if (m_socket != null)
+                        m_socket.BeginDisconnect(false, ProcessDisconnect, m_socket);
+                }
                 OnDisconnected();
+
+                this.Dispose();
 
                 Logger.Info($"{this} disconnected !");
             }
@@ -235,7 +248,6 @@ namespace PAO.Server.Base.Network
         {
             try
             {
-                this.Dispose();
                 this.Stop();
             }
             catch (System.Exception ex)
